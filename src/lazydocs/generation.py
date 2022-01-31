@@ -24,9 +24,15 @@ _RE_QUOTE_TEXT = re.compile(r"(Notes:|Note:).{0,2}$", re.IGNORECASE)
 _RE_TYPED_ARGSTART = re.compile(r"([\w\[\]_]{1,}?)\s*?\((.*?)\):(.{2,})", re.IGNORECASE)
 _RE_ARGSTART = re.compile(r"(.{1,}?)\s:\s(.{2,})", re.IGNORECASE)
 
+_RE_FILEHEADER_LIST = re.compile(r"(Created By:|File Name:|Date Created:|Description:|Credits:|References:).{0,2}\s(.*)$", re.IGNORECASE)
+
 _IGNORE_GENERATION_INSTRUCTION = "lazydocs: ignore"
 
 # String templates
+
+# _SOURCE_BADGE_TEMPLATE = """
+# <a href="/asfadmin/aiphase/blob/main/etc/{path}"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+# """
 
 _SOURCE_BADGE_TEMPLATE = """
 <a href="{path}"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
@@ -45,7 +51,6 @@ _FUNC_TEMPLATE = """
 
 {doc}
 """
-
 
 _CLASS_TEMPLATE = """
 {section} <kbd>class</kbd> `{header}`
@@ -81,7 +86,7 @@ _WATERMARK_TEMPLATE = """
 
 ---
 
-_This file was automatically generated via [lazydocs](https://github.com/ml-tooling/lazydocs)._
+_This file was automatically generated via [andrewplayer3](https://github.com/andrewplayer3/lazydocs)'s fork of [lazydocs](https://github.com/ml-tooling/lazydocs)._
 """
 
 _MKDOCS_PAGES_TEMPLATE = """title: API Reference
@@ -383,13 +388,15 @@ def _doc2md(obj: Any) -> str:
                 out.append("```\n")
                 literal_block = False
 
-            out.append("\n\n*{}*\n".format(line.strip()))
+            out.append("\n\n{}\n".format(line.strip()))
 
             arg_list = bool(_RE_BLOCKSTART_LIST.match(line))
 
             if _RE_QUOTE_TEXT.match(line):
                 quote_block = True
                 out.append("\n>")
+        elif _RE_FILEHEADER_LIST.match(line):
+            out.append("{}<br>".format(line.strip()))
         elif line.strip().startswith("```"):
             # Code snippet is used
             if md_code_snippet:
@@ -445,7 +452,7 @@ def _doc2md(obj: Any) -> str:
             out.append("\n\n")
         elif not line and quote_block:
             out.append("\n>")
-        else:
+        elif not _RE_FILEHEADER_LIST.match(line):
             out.append(" ")
 
     return "".join(out)
