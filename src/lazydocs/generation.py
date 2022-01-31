@@ -22,7 +22,7 @@ _RE_BLOCKSTART_TEXT = re.compile(r"(Examples:|Example:|Todo:).{0,2}$", re.IGNORE
 _RE_QUOTE_TEXT = re.compile(r"(Notes:|Note:).{0,2}$", re.IGNORECASE)
 
 _RE_TYPED_ARGSTART = re.compile(r"([\w\[\]_]{1,}?)\s*?\((.*?)\):(.{2,})", re.IGNORECASE)
-_RE_ARGSTART = re.compile(r"(.{1,}?):(.{2,})", re.IGNORECASE)
+_RE_ARGSTART = re.compile(r"(.{1,}?)\s:\s(.{2,})", re.IGNORECASE)
 
 _IGNORE_GENERATION_INSTRUCTION = "lazydocs: ignore"
 
@@ -383,7 +383,7 @@ def _doc2md(obj: Any) -> str:
                 out.append("```\n")
                 literal_block = False
 
-            out.append("\n\n**{}**\n".format(line.strip()))
+            out.append("\n\n*{}*\n".format(line.strip()))
 
             arg_list = bool(_RE_BLOCKSTART_LIST.match(line))
 
@@ -406,8 +406,8 @@ def _doc2md(obj: Any) -> str:
             out.append(line.strip())
         elif line.strip().startswith("-"):
             # Allow bullet lists
-            out.append("\n" + (" " * indent) + line)
-        elif indent > blockindent:
+            out.append(line + "\n")
+        elif indent == blockindent:
             if arg_list and not literal_block and _RE_TYPED_ARGSTART.match(line):
                 # start of new argument
                 out.append(
@@ -423,7 +423,7 @@ def _doc2md(obj: Any) -> str:
                     "\n"
                     + " " * blockindent
                     + " - "
-                    + _RE_ARGSTART.sub(r"<b>`\1`</b>: \2", line)
+                    + _RE_ARGSTART.sub(r"<b>`\1` : `\2`</b><br>", line)
                 )
                 argindent = indent
             elif indent > argindent:
